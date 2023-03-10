@@ -37,10 +37,11 @@ void setup() {
 void loop(){
     long randNumber;
     randNumber = random(300);
+    float Temperature = GetSuhu();
     Firebase.setFloat(firebaseData, "/admin/aquarium-1/ph", randNumber);
-    Firebase.setFloat(firebaseData, "/admin/aquarium-1/temp", randNumber);
+    Firebase.setFloat(firebaseData, "/admin/aquarium-1/temp",Temperature);
     Firebase.setFloat(firebaseData, "/admin/aquarium-1/turbidity", randNumber);
     delay(1000);
-    GetSuhu();
+    Serial.println(Temperature);
 
 }
