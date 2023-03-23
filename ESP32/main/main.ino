@@ -4,13 +4,18 @@ FirebaseData firebaseData;
 #include <WiFi.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-
-
+#include <TFT_eSPI.h> // Include the library
+#include <SPI.h>
+TFT_eSPI tft = TFT_eSPI(240, 320); 
+#include <Servo.h>
 OneWire oneWire(SENSOR_SUHU);
 DallasTemperature sensor(&oneWire);
+static const int servoPin = 12;
+Servo servo1;
 
 void setup() {
     Serial.begin(115200);
+    servo1.attach(servoPin);
     while(!Serial){delay(100);}
 
     // We start by connecting to a WiFi network
@@ -43,5 +48,6 @@ void loop(){
     Firebase.setFloat(firebaseData, "/admin/aquarium-1/turbidity", randNumber);
     delay(1000);
     Serial.println(Temperature);
+    getServo();
 
 }
