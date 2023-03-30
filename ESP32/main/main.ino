@@ -6,6 +6,7 @@ FirebaseData firebaseData;
 #include <DallasTemperature.h>
 #include <TFT_eSPI.h> // Include the library
 #include <SPI.h>
+#include "time.h"
 TFT_eSPI tft = TFT_eSPI(240, 320); 
 #include <Servo.h>
 OneWire oneWire(SENSOR_SUHU);
@@ -15,6 +16,10 @@ Servo servo1;
 
 unsigned long previousMillis = 0;
 const unsigned long interval = 60000; // interval waktu dalam milidetik (1 menit)
+
+const char* ntpServer = "0.id.pool.ntp.org";
+const long  gmtOffset_sec = 0;
+const int   daylightOffset_sec = 3600;
 
 
 void setup() {
@@ -34,6 +39,8 @@ void setup() {
         delay(500);
         Serial.print(".");
     }
+    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+    printLocalTime();
 
     Serial.println("");
     Serial.println("WiFi connected");
@@ -49,6 +56,8 @@ void loop(){
     float Temperature = GetSuhu();
     unsigned long currentMillis = millis();
 
+    printLocalTime();
+
     // Jika sudah lewat waktu 1 menit sejak data terakhir dikirim
     if (currentMillis - previousMillis >= interval) {
         // Simpan nilai millis saat ini ke dalam previousMillis
@@ -56,10 +65,11 @@ void loop(){
 
         // Kirim data ke Firebase
         Firebase.setFloat(firebaseData, "/admin/aquarium-1/ph", randNumber);
-        Firebase.setFloat(firebaseData, "/admin/aquarium-1/temp", temperature);
-        Firebase.setFloat(firebaseData, "/admin/aquarium-1/turbidity", turbidity);
+        Firebase.setFloat(firebaseData, "/admin/aquarium-1/temp", Temperature);
+        Firebase.setFloat(firebaseData, "/admin/aquarium-1/turbidity", randNumber);
+        Firebase.setString(firebaseData,"/admin/aquarium-1/updated_at",dateStr);
     }
     Serial.println(Temperature);
-    getServo();
+    //getServo();
 
 }
