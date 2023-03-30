@@ -13,6 +13,10 @@ DallasTemperature sensor(&oneWire);
 static const int servoPin = 12;
 Servo servo1;
 
+unsigned long previousMillis = 0;
+const unsigned long interval = 60000; // interval waktu dalam milidetik (1 menit)
+
+
 void setup() {
     Serial.begin(115200);
     servo1.attach(servoPin);
@@ -43,10 +47,18 @@ void loop(){
     long randNumber;
     randNumber = random(300);
     float Temperature = GetSuhu();
-    Firebase.setFloat(firebaseData, "/admin/aquarium-1/ph", randNumber);
-    Firebase.setFloat(firebaseData, "/admin/aquarium-1/temp",Temperature);
-    Firebase.setFloat(firebaseData, "/admin/aquarium-1/turbidity", randNumber);
-    delay(1000);
+    unsigned long currentMillis = millis();
+
+    // Jika sudah lewat waktu 1 menit sejak data terakhir dikirim
+    if (currentMillis - previousMillis >= interval) {
+        // Simpan nilai millis saat ini ke dalam previousMillis
+        previousMillis = currentMillis;
+
+        // Kirim data ke Firebase
+        Firebase.setFloat(firebaseData, "/admin/aquarium-1/ph", randNumber);
+        Firebase.setFloat(firebaseData, "/admin/aquarium-1/temp", temperature);
+        Firebase.setFloat(firebaseData, "/admin/aquarium-1/turbidity", turbidity);
+    }
     Serial.println(Temperature);
     getServo();
 
