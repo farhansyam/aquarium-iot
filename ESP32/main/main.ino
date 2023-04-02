@@ -25,6 +25,7 @@ const int   daylightOffset_sec = 3600;
 void setup() {
     Serial.begin(115200);
     servo1.attach(servoPin);
+    pinMode(phPin, INPUT);
     while(!Serial){delay(100);}
 
     // We start by connecting to a WiFi network
@@ -55,8 +56,9 @@ void loop(){
     randNumber = random(300);
     float Temperature = GetSuhu();
     unsigned long currentMillis = millis();
-
     printLocalTime();
+    //getTurbidity();
+    PHsensor();
 
     // Jika sudah lewat waktu 1 menit sejak data terakhir dikirim
     if (currentMillis - previousMillis >= interval) {
@@ -64,7 +66,7 @@ void loop(){
         previousMillis = currentMillis;
 
         // Kirim data ke Firebase
-        Firebase.setFloat(firebaseData, "/admin/aquarium-1/ph", randNumber);
+        Firebase.setFloat(firebaseData, "/admin/aquarium-1/ph", Po);
         Firebase.setFloat(firebaseData, "/admin/aquarium-1/temp", Temperature);
         Firebase.setFloat(firebaseData, "/admin/aquarium-1/turbidity", randNumber);
         Firebase.setString(firebaseData,"/admin/aquarium-1/updated_at",dateStr);
