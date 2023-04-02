@@ -1,34 +1,21 @@
-const int phPin = 12;
-float Po = 0;
-float PHStep;
-int nilaiAnalogPH;
-double teganganPH;
-
-//untuk kalibrasi
-
-float PH4 = 3.239;
-float PH7 = 2.527;
-
-void setup()
-{
-    pinMode(phPin,INPUT);
-    Serial.begin(115200);
-    
-}
-
-void loop()
+void PHsensor()
 {
     nilaiAnalogPH = analogRead(phPin);
-    Serial.print("Nilai ADC PH: ");
-    Serial.println(nilaiAnalogPH);
     teganganPH = 3.3 / 4095 * nilaiAnalogPH;
-    Serial.print("Tegangan: ");
-    Serial.println(teganganPH,3);
+    sumTegangan += teganganPH;
+    countTegangan++;
 
-    PHStep = (PH4 - PH7) / 3;
-    Po = 7.00 + ((PH7 -teganganPH) / PHStep);
-    Serial.print("Nilai PH cairan: ");
-    Serial.println(Po, 2);
-    delay(3000);
+    if (countTegangan == 10) { // hitung rata-rata setiap 10 kali pembacaan
+        float rataTegangan = sumTegangan / countTegangan;
+        PHStep = (PH4 - PH7) / 3;
+        Po = 7.00 + ((PH7 - rataTegangan) / PHStep);
+        Serial.print("Nilai PH cairan: ");
+        Serial.println(Po, 2);
+        Serial.print("Rata-rata tegangan: ");
+        Serial.println(rataTegangan, 3);
+        sumTegangan = 0;
+        countTegangan = 0;
+    }
     
+    delay(100); // tunggu 1 detik sebelum melakukan pembacaan berikutnya
 }
