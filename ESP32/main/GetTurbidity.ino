@@ -1,42 +1,30 @@
-int pinTurb = 34;
-float V;
-float kekeruhan;
-float VRata2;
-float VHasil;
-
-void setup()
-{
-  Serial.begin(9600);
-  Serial.println("SENSOR KEKERUHAN AIR");
-  delay(2000);
-}
-
-void loop()
-{
-  V = 0;
+float getTurbidity (){
+  float V = 0;
+  float kekeruhan, akhir, VRata2, VHasil;
   for(int i=0; i<800; i++)
   {
-    V += ((float)analogRead(pinTurb)/4095)*3.3;
+    V += ((float)analogRead(34)/4095)*5;
   }
-
   VRata2 = V/800;
   VHasil = roundf(VRata2*10.0f)/10.0f;
-
-  if(VHasil < 1.25)
-  {
+  VFinal = VHasil-7;
+  kekeruhan = -1120.4*powf(VFinal,2)+5742.3*VFinal-4353.8;
+  akhir = kekeruhan-13488;
+  if(VFinal <2.5){
     kekeruhan = 3000;
+    Serial.print("tegangan :");
+    Serial.print(VFinal);
+    Serial.print(" V");
+    Serial.print("\t kekeruhan :");
+    Serial.println(kekeruhan);
   }
-  else
-  {
-    kekeruhan = -1120.4*pow(VHasil, 2) + 5742.3*VHasil - 4353.8;
+  else{
+    Serial.print("tegangan :");
+    Serial.print(VFinal);
+    Serial.print(" V");
+    Serial.print("\t kekeruhan :");
+    Serial.println(akhir);
   }
-
-  Serial.print("Tegangan: ");
-  Serial.print(VHasil, 1);
-  Serial.print(" V");
-
-  Serial.print("\tKekeruhan: ");
-  Serial.print(kekeruhan);
-  Serial.println(" NTU");
-  delay(10);
+  Serial.print("V sebenarnya : "); Serial.println(VHasil);
+  return kekeruhan;
 }
