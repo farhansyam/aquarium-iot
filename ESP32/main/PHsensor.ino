@@ -1,4 +1,4 @@
-void PHsensor()
+float PHsensor()
 {
     nilaiAnalogPH = analogRead(phPin);
     teganganPH = 3.3 / 4095 * nilaiAnalogPH;
@@ -17,5 +17,5 @@ void PHsensor()
         countTegangan = 0;
     }
     
-    delay(100); // tunggu 1 detik sebelum melakukan pembacaan berikutnya
+    delay(500); // tunggu 1 detik sebelum melakukan pembacaan berikutnya
 }
