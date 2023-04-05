@@ -1,5 +1,5 @@
 #include "Configuration.h"
-#include <FirebaseESP32.h>
+#include <Firebase_ESP_Client.h>
 FirebaseData firebaseData;
 #include <WiFi.h>
 #include <OneWire.h>
@@ -7,12 +7,12 @@ FirebaseData firebaseData;
 #include <TFT_eSPI.h> // Include the library
 #include <SPI.h>
 #include "time.h"
-TFT_eSPI tft = TFT_eSPI(240, 320); 
 #include <Servo.h>
-OneWire oneWire(SENSOR_SUHU);
-DallasTemperature sensor(&oneWire);
+
 static const int servoPin = 12;
-Servo servo1;
+
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 
 unsigned long previousMillis = 0;
 const unsigned long interval = 60000; // interval waktu dalam milidetik (1 menit)
@@ -21,11 +21,20 @@ const char* ntpServer = "0.id.pool.ntp.org";
 const long  gmtOffset_sec = 0;
 const int   daylightOffset_sec = 3600;
 
+Servo servo1;
+FirebaseData fbdo;
+FirebaseAuth auth;
+FirebaseConfig config;
+OneWire oneWire(SENSOR_SUHU);
+DallasTemperature sensor(&oneWire);
+TFT_eSPI tft = TFT_eSPI(240, 320); 
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 7 * 3600); // GMT+7
+
 
 void setup() {
     Serial.begin(115200);
     servo1.attach(servoPin);
-    pinMode(phPin, INPUT);
     while(!Serial){delay(100);}
 
     // We start by connecting to a WiFi network
@@ -47,8 +56,17 @@ void setup() {
     Serial.println("WiFi connected");
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
-    Firebase.begin(DATABASE_URL, API_KEY);
     sensor.begin();
+    timeClient.begin();
+    while (!timeClient.update()) {
+        timeClient.forceUpdate();
+    }
+
+    //firebase config
+    Firebase.begin(&config, &auth);
+    config.api_key = API_KEY;
+    config.database_url = DATABASE_URL;
+    
 
 }
 void loop(){
@@ -56,22 +74,48 @@ void loop(){
     randNumber = random(300);
     float Temperature = GetSuhu();
     unsigned long currentMillis = millis();
-    printLocalTime();
+    //printLocalTime();
     //getTurbidity();
-    PHsensor();
+    //PHsensor();
 
     // Jika sudah lewat waktu 1 menit sejak data terakhir dikirim
-    if (currentMillis - previousMillis >= interval) {
+    if (Firebase.ready() && (currentMillis - previousMillis >= interval)) {
         // Simpan nilai millis saat ini ke dalam previousMillis
         previousMillis = currentMillis;
 
         // Kirim data ke Firebase
-        Firebase.setFloat(firebaseData, "/admin/aquarium-1/ph", Po);
+        /*Firebase.setFloat(firebaseData, "/admin/aquarium-1/ph", randNumber);
         Firebase.setFloat(firebaseData, "/admin/aquarium-1/temp", Temperature);
         Firebase.setFloat(firebaseData, "/admin/aquarium-1/turbidity", randNumber);
         Firebase.setString(firebaseData,"/admin/aquarium-1/updated_at",dateStr);
+        Serial.println("data terkirim");*/
     }
-    Serial.println(Temperature);
+    //Serial.println(Temperature);
     //getServo();
+    time_t now = time(nullptr);
+    struct tm* timeinfo = localtime(&now);
+    // Mengirim data ke Firestore setiap hari sekali pada jam 6 pagi WIB
+     if (/*Firebase.ready() && (currentMillis - previousMillis >= interval)*/timeinfo->tm_hour == 6 && timeinfo->tm_min == 0 && timeinfo->tm_sec == 0) {
+        // membuat objek JSON
+        FirebaseJson json;
+        String documentPath = "/admin/aquarium-1/update-harian"
+        json.set("fields/ph/", randNumber);
+        json.set("fields/temp", Temperature);
+        json.set("fields/turbidity/", randNumber);
+
+        // mengirim data JSON ke Firestore
+        if (Firebase.Firestore.createDocument(&fbdo, FIREBASE_PROJECT_ID, "" /* databaseId can be (default) or empty */, documentPath.c_str(), json.raw())){
+            Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
+        }
+        else{
+            Serial.println(fbdo.errorReason());
+        }
+            
+        
+        
+    }
+
+
+
 
 }
