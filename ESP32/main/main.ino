@@ -1,6 +1,5 @@
 #include "Configuration.h"
 #include <Firebase_ESP_Client.h>
-FirebaseData firebaseData;
 #include <WiFi.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -8,19 +7,20 @@ FirebaseData firebaseData;
 #include <SPI.h>
 #include "time.h"
 #include <Servo.h>
-
-static const int servoPin = 12;
-
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 
+
+
+
+static const int servoPin = 12;
 unsigned long previousMillis = 0;
 const unsigned long interval = 60000; // interval waktu dalam milidetik (1 menit)
-
 const char* ntpServer = "0.id.pool.ntp.org";
 const long  gmtOffset_sec = 0;
 const int   daylightOffset_sec = 3600;
 
+FirebaseData firebaseData;
 Servo servo1;
 FirebaseData fbdo;
 FirebaseAuth auth;
@@ -63,9 +63,17 @@ void setup() {
     }
 
     //firebase config
-    Firebase.begin(&config, &auth);
     config.api_key = API_KEY;
     config.database_url = DATABASE_URL;
+    auth.user.email = USER_EMAIL;
+    auth.user.password = USER_PASSWORD;
+    Firebase.begin(&config, &auth);
+
+    if (Firebase.ready()) {
+        Serial.println("Firebase connection successful");
+    } else {
+        Serial.println("Firebase connection failed");
+    }
     
 
 }
@@ -88,20 +96,20 @@ void loop(){
         Firebase.setFloat(firebaseData, "/admin/aquarium-1/temp", Temperature);
         Firebase.setFloat(firebaseData, "/admin/aquarium-1/turbidity", randNumber);
         Firebase.setString(firebaseData,"/admin/aquarium-1/updated_at",dateStr);
-        Serial.println("data terkirim");*/
+        Serial.println("data terkirim");*/      
     }
     //Serial.println(Temperature);
     //getServo();
     time_t now = time(nullptr);
     struct tm* timeinfo = localtime(&now);
     // Mengirim data ke Firestore setiap hari sekali pada jam 6 pagi WIB
-     if (/*Firebase.ready() && (currentMillis - previousMillis >= interval)*/timeinfo->tm_hour == 6 && timeinfo->tm_min == 0 && timeinfo->tm_sec == 0) {
+     if (timeinfo->tm_hour == 6 && timeinfo->tm_min == 0 && timeinfo->tm_sec == 0) {
         // membuat objek JSON
         FirebaseJson json;
-        String documentPath = "/admin/aquarium-1/update-harian"
-        json.set("fields/ph/", randNumber);
-        json.set("fields/temp", Temperature);
-        json.set("fields/turbidity/", randNumber);
+        String documentPath = "/admin/aquarium-1/update-harian/";
+        json.set("fields/ph/doubleValue", randNumber);
+        json.set("fields/temp/doubleValue", Temperature);
+        json.set("fields/turbidity/doubleValue", randNumber);
 
         // mengirim data JSON ke Firestore
         if (Firebase.Firestore.createDocument(&fbdo, FIREBASE_PROJECT_ID, "" /* databaseId can be (default) or empty */, documentPath.c_str(), json.raw())){
@@ -109,8 +117,7 @@ void loop(){
         }
         else{
             Serial.println(fbdo.errorReason());
-        }
-            
+        }            
         
         
     }
