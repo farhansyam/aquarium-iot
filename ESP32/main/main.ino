@@ -91,12 +91,16 @@ void loop(){
         // Simpan nilai millis saat ini ke dalam previousMillis
         previousMillis = currentMillis;
 
-        // Kirim data ke Firebase
-        /*Firebase.setFloat(firebaseData, "/admin/aquarium-1/ph", randNumber);
-        Firebase.setFloat(firebaseData, "/admin/aquarium-1/temp", Temperature);
-        Firebase.setFloat(firebaseData, "/admin/aquarium-1/turbidity", randNumber);
-        Firebase.setString(firebaseData,"/admin/aquarium-1/updated_at",dateStr);
-        Serial.println("data terkirim");*/      
+        // Kirim data ke Realtime database
+        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/ph"), randNumber) ? "ok" : fbdo.errorReason().c_str());
+        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/temp"), Temperature)  ? "ok" : fbdo.errorReason().c_str());
+        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/turbidity"), randNumber) ? "ok" : fbdo.errorReason().c_str());
+        Serial.println(Firebase.RTDB.setString(&fbdo,F("/admin/aquarium-1/updated_at"),dateStr) ? "ok" : fbdo.errorReason().c_str());
+        Serial.println("data terkirim:");
+        Serial.println(randNumber);
+        Serial.println(Temperature);
+        Serial.println(dateStr);
+
     }
     //Serial.println(Temperature);
     //getServo();
