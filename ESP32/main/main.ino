@@ -81,6 +81,9 @@ void loop(){
     long randNumber;
     randNumber = random(300);
     float Temperature = GetSuhu();
+    PHsensor();
+
+
     unsigned long currentMillis = millis();
     //printLocalTime();
     //getTurbidity();
@@ -92,14 +95,10 @@ void loop(){
         previousMillis = currentMillis;
 
         // Kirim data ke Realtime database
-        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/ph"), randNumber) ? "ok" : fbdo.errorReason().c_str());
-        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/temp"), Temperature)  ? "ok" : fbdo.errorReason().c_str());
-        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/turbidity"), randNumber) ? "ok" : fbdo.errorReason().c_str());
-        Serial.println(Firebase.RTDB.setString(&fbdo,F("/admin/aquarium-1/updated_at"),dateStr) ? "ok" : fbdo.errorReason().c_str());
-        Serial.println("data terkirim:");
-        Serial.println(randNumber);
-        Serial.println(Temperature);
-        Serial.println(dateStr);
+        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/ph"), Po) ? "data ph terkirim" : fbdo.errorReason().c_str());
+        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/temp"), Temperature)  ? "data temperature suhu terkirim" : fbdo.errorReason().c_str());
+        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/turbidity"), randNumber) ? "data turbidity sukses terkirim" : fbdo.errorReason().c_str());
+        Serial.println(Firebase.RTDB.setString(&fbdo,F("/admin/aquarium-1/updated_at"),dateStr) ? "data tanggal saat ini sukses terkirim" : fbdo.errorReason().c_str());
 
     }
     //Serial.println(Temperature);
@@ -113,7 +112,7 @@ void loop(){
         String documentPath = "/admin/aquarium-1/update-harian/";
         json.set("fields/ph/doubleValue", randNumber);
         json.set("fields/temp/doubleValue", Temperature);
-        json.set("fields/turbidity/doubleValue", randNumber);
+        json.set("fields/turbidity/doubleValue", Po);
 
         // mengirim data JSON ke Firestore
         if (Firebase.Firestore.createDocument(&fbdo, FIREBASE_PROJECT_ID, "" /* databaseId can be (default) or empty */, documentPath.c_str(), json.raw())){
@@ -125,8 +124,5 @@ void loop(){
         
         
     }
-
-
-
 
 }

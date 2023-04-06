@@ -1,4 +1,4 @@
-float PHsensor()
+void PHsensor()
 {
     nilaiAnalogPH = analogRead(phPin);
     teganganPH = 3.3 / 4095 * nilaiAnalogPH;
@@ -14,7 +14,7 @@ float PHsensor()
         Serial.print("Rata-rata tegangan: ");
         Serial.println(rataTegangan, 3);
         sumTegangan = 0;
-        countTegangan = 0;
+        countTegangan = 0; // tambahkan statement return Po
     }
     
     delay(500); // tunggu 1 detik sebelum melakukan pembacaan berikutnya
