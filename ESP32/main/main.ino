@@ -27,12 +27,22 @@ FirebaseAuth auth;
 FirebaseConfig config;
 OneWire oneWire(SENSOR_SUHU);
 DallasTemperature sensor(&oneWire);
-TFT_eSPI tft = TFT_eSPI(240, 320); 
+TFT_eSPI tft = TFT_eSPI(); 
+TFT_eSprite sprite = TFT_eSprite(&tft);
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", 7 * 3600); // GMT+7
 
-
 void setup() {
+    
+    tft.init();
+    tft.setRotation(1);
+    tft.fillScreen(TFT_BLACK);
+    sprite.setColorDepth(8);
+    sprite.createSprite(LOADING_BAR_WIDTH, LOADING_BAR_HEIGHT + 20);
+    /*uint16_t calData[5] = { 350, 3800, 350, 3400, 7 };
+    tft.setTouch(calData); */
+    uint16_t calData[5] = { 261, 3521, 367, 3422, 7 };
+    tft.setTouch(calData);
     Serial.begin(115200);
     servo1.attach(servoPin);
     while(!Serial){delay(100);}
@@ -74,7 +84,11 @@ void setup() {
     } else {
         Serial.println("Firebase connection failed");
     }
-    
+    for (int i = 0; i <= 100; i += 5) { // Change the increment value and max value to adjust loading speed
+        drawLoadingBar();
+        delay(100); // Change the delay time to adjust loading speed
+    }
+    tft.fillScreen(TFT_BLACK);
 
 }
 void loop(){
@@ -85,10 +99,6 @@ void loop(){
 
 
     unsigned long currentMillis = millis();
-    //printLocalTime();
-    //getTurbidity();
-    //PHsensor();
-
     // Jika sudah lewat waktu 1 menit sejak data terakhir dikirim
     if (Firebase.ready() && (currentMillis - previousMillis >= interval)) {
         // Simpan nilai millis saat ini ke dalam previousMillis
