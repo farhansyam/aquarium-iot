@@ -123,6 +123,7 @@ void loop(){
         json.set("fields/ph/doubleValue", randNumber);
         json.set("fields/temp/doubleValue", Temperature);
         json.set("fields/turbidity/doubleValue", Po);
+        json.set("fields/created_at/string",dateStr);
 
         // mengirim data JSON ke Firestore
         if (Firebase.Firestore.createDocument(&fbdo, FIREBASE_PROJECT_ID, "" /* databaseId can be (default) or empty */, documentPath.c_str(), json.raw())){
