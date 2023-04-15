@@ -9,6 +9,7 @@
 #include <Servo.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
+#include "main_menu.h"
 
 
 
@@ -88,7 +89,9 @@ void setup() {
         drawLoadingBar();
         delay(100); // Change the delay time to adjust loading speed
     }
+    tft.setSwapBytes(true);
     tft.fillScreen(TFT_BLACK);
+    tft.pushImage(0,0,480,320,main_menu);
 
 }
 void loop(){
