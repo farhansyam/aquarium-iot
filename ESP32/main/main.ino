@@ -14,7 +14,6 @@
 #include "RTClib.h"
 
 
-RTC_DS1307 rtc;
 static const int servoPin = 12;
 unsigned long previousMillis = 0;
 const unsigned long interval = 60000; // interval waktu dalam milidetik (1 menit)
@@ -23,6 +22,7 @@ const long  gmtOffset_sec = 0;
 const int   daylightOffset_sec = 3600;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
+RTC_DS1307 rtc;
 FirebaseData firebaseData;
 Servo servo1;
 FirebaseData fbdo;
@@ -34,9 +34,11 @@ TFT_eSPI tft = TFT_eSPI();
 TFT_eSprite sprite = TFT_eSprite(&tft);
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", 7 * 3600); // GMT+7
+TwoWire myWire(1);
 
 void setup() {
-    if (! rtc.begin()) {
+    myWire.begin(25, 32); 
+    if (! rtc.begin(&myWire)) {
         Serial.println("Couldn't find RTC");
         Serial.flush();
         while (1) delay(10);
@@ -48,6 +50,7 @@ void setup() {
     }
 
     tft.init();
+    tft.fillScreen(TFT_BLACK);
     tft.setRotation(1);
     uint16_t calData[5] = { 261, 3521, 367, 3422, 7 };
     tft.setTouch(calData);
@@ -105,12 +108,12 @@ void setup() {
 
 }
 void loop(){
-    
+    PHsensor();
     uint16_t x, y;
     static uint16_t color;
     DateTime now = rtc.now();
     float Temperature = GetSuhu();
-    PHsensor();
+
 
     // format tanggal
     String tanggal = "";
@@ -128,28 +131,41 @@ void loop(){
     Serial.print("Tanggal (format dd-mm-yyyy): ");
     Serial.println(tanggal);
 
+    //tft.pushImage(monitor_x, monitor_y, monitor_width, monitor_height, monitor);
+    if (tft.getTouch(&x, &y)) {
 
-    unsigned long currentMillis = millis();
-    // Jika sudah lewat waktu 1 menit sejak data terakhir dikirim
-    if (Firebase.ready() && (currentMillis - previousMillis >= interval)) {
-        // Simpan nilai millis saat ini ke dalam previousMillis
-        previousMillis = currentMillis;
+        tft.fillScreen(TFT_BLACK); // hapus layar
+        tft.setTextColor(TFT_RED, TFT_BLACK); // teks berwarna merah, latar belakang hitam
+        tft.setCursor(5, 5, 2);
+        tft.printf("x: %i     ", x);
+        tft.setCursor(5, 20, 2);
+        tft.printf("y: %i    ", y);
+        tft.drawPixel(x, y, color);
+        color += 155;
+        // Cek apakah sentuhan berada di dalam koordinat gambar monitor
+        if (x >= monitor_x && x <= monitor_x + monitor_width && y >= monitor_y && y <= monitor_y + monitor_height) {
+            tft.pushImage(monitor_x, monitor_y, monitor_width, monitor_height, monitor);
+        // Aksi ketika gambar monitor di klik
 
-        // Kirim data ke Realtime database
-        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/ph"), Po) ? "data ph terkirim" : fbdo.errorReason().c_str());
-        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/temp"), Temperature)  ? "data temperature suhu terkirim" : fbdo.errorReason().c_str());
-        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/turbidity"), Temperature) ? "data turbidity sukses terkirim" : fbdo.errorReason().c_str());
-        Serial.println(Firebase.RTDB.setString(&fbdo,F("/admin/aquarium-1/updated_at"),tanggal) ? "data tanggal saat ini sukses terkirim" : fbdo.errorReason().c_str());
-
+        // contoh: tampilkan menu monitor
+        }
+        
+        // Cek apakah sentuhan berada di dalam koordinat gambar pompa
+        else if (x >= pompa_x && x <= pompa_x + pompa_width &&  y >= pompa_y && y <= pompa_y + pompa_height) {
+            tft.pushImage(pompa_x, pompa_y, pompa_width, pompa_height, pompa);
+        // Aksi ketika gambar pompa di klik
+        // contoh: tampilkan menu pompa
+        }
     }
-    //Serial.println(Temperature);
-    //getServo();
-    // Mengirim data ke Firestore setiap hari sekali pada jam 6 pagi WIB
+
+
+
+
     if (now.hour() == 6 && now.minute() == 0 && now.second() == 0) {
         // membuat objek JSON
         FirebaseJson json;
         String documentPath = "/admin/aquarium-1/update-harian/";
-        json.set("fields/ph/doubleValue", Temperature);
+        json.set("fields/ph/doubleValue", Po);
         json.set("fields/temp/doubleValue", Temperature);
         json.set("fields/turbidity/doubleValue", Po);
         json.set("fields/created_at/string",tanggal);
@@ -164,6 +180,26 @@ void loop(){
         
         
     }
+
+
+
+    //Serial.println(Temperature);
+    //getServo();
+    // Mengirim data ke Firestore setiap hari sekali pada jam 6 pagi WIB
+    unsigned long currentMillis = millis();
+    // Jika sudah lewat waktu 1 menit sejak data terakhir dikirim
+    if (Firebase.ready() && (currentMillis - previousMillis >= interval)) {
+        // Simpan nilai millis saat ini ke dalam previousMillis
+        previousMillis = currentMillis;
+
+        // Kirim data ke Realtime database
+        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/ph"), Po) ? "data ph terkirim" : fbdo.errorReason().c_str());
+        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/temp"), Temperature)  ? "data temperature suhu terkirim" : fbdo.errorReason().c_str());
+        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/turbidity"), Temperature) ? "data turbidity sukses terkirim" : fbdo.errorReason().c_str());
+        Serial.println(Firebase.RTDB.setString(&fbdo,F("/admin/aquarium-1/updated_at"),tanggal) ? "data tanggal saat ini sukses terkirim" : fbdo.errorReason().c_str());
+
+    }
+
 
 
 }
