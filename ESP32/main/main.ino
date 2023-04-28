@@ -9,17 +9,19 @@
 #include <Servo.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
-#include "main_menu.h"
+#include "monitor.h"
+#include "pompa.h"
+#include "RTClib.h"
 
 
-
-
+RTC_DS1307 rtc;
 static const int servoPin = 12;
 unsigned long previousMillis = 0;
 const unsigned long interval = 60000; // interval waktu dalam milidetik (1 menit)
 const char* ntpServer = "0.id.pool.ntp.org";
 const long  gmtOffset_sec = 0;
 const int   daylightOffset_sec = 3600;
+char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
 FirebaseData firebaseData;
 Servo servo1;
@@ -34,16 +36,27 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", 7 * 3600); // GMT+7
 
 void setup() {
-    
+    if (! rtc.begin()) {
+        Serial.println("Couldn't find RTC");
+        Serial.flush();
+        while (1) delay(10);
+    }
+
+    if (! rtc.isrunning()) {
+        Serial.println("RTC is NOT running, let's set the time!");
+        rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    }
+
     tft.init();
     tft.setRotation(1);
-    tft.fillScreen(TFT_BLACK);
+    uint16_t calData[5] = { 261, 3521, 367, 3422, 7 };
+    tft.setTouch(calData);
+
     sprite.setColorDepth(8);
     sprite.createSprite(LOADING_BAR_WIDTH, LOADING_BAR_HEIGHT + 20);
     /*uint16_t calData[5] = { 350, 3800, 350, 3400, 7 };
     tft.setTouch(calData); */
-    uint16_t calData[5] = { 261, 3521, 367, 3422, 7 };
-    tft.setTouch(calData);
+
     Serial.begin(115200);
     servo1.attach(servoPin);
     while(!Serial){delay(100);}
@@ -60,8 +73,6 @@ void setup() {
         delay(500);
         Serial.print(".");
     }
-    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-    printLocalTime();
 
     Serial.println("");
     Serial.println("WiFi connected");
@@ -91,14 +102,31 @@ void setup() {
     }
     tft.setSwapBytes(true);
     tft.fillScreen(TFT_BLACK);
-    tft.pushImage(0,0,480,320,main_menu);
 
 }
 void loop(){
-    long randNumber;
-    randNumber = random(300);
+    
+    uint16_t x, y;
+    static uint16_t color;
+    DateTime now = rtc.now();
     float Temperature = GetSuhu();
     PHsensor();
+
+    // format tanggal
+    String tanggal = "";
+    if (now.day() < 10) {
+        tanggal += "0";
+    }
+    tanggal += String(now.day(), DEC);
+    tanggal += "-";
+    if (now.month() < 10) {
+        tanggal += "0";
+    }
+    tanggal += String(now.month(), DEC);
+    tanggal += "-";
+    tanggal += String(now.year(), DEC);
+    Serial.print("Tanggal (format dd-mm-yyyy): ");
+    Serial.println(tanggal);
 
 
     unsigned long currentMillis = millis();
@@ -110,23 +138,21 @@ void loop(){
         // Kirim data ke Realtime database
         Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/ph"), Po) ? "data ph terkirim" : fbdo.errorReason().c_str());
         Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/temp"), Temperature)  ? "data temperature suhu terkirim" : fbdo.errorReason().c_str());
-        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/turbidity"), randNumber) ? "data turbidity sukses terkirim" : fbdo.errorReason().c_str());
-        Serial.println(Firebase.RTDB.setString(&fbdo,F("/admin/aquarium-1/updated_at"),dateStr) ? "data tanggal saat ini sukses terkirim" : fbdo.errorReason().c_str());
+        Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/turbidity"), Temperature) ? "data turbidity sukses terkirim" : fbdo.errorReason().c_str());
+        Serial.println(Firebase.RTDB.setString(&fbdo,F("/admin/aquarium-1/updated_at"),tanggal) ? "data tanggal saat ini sukses terkirim" : fbdo.errorReason().c_str());
 
     }
     //Serial.println(Temperature);
     //getServo();
-    time_t now = time(nullptr);
-    struct tm* timeinfo = localtime(&now);
     // Mengirim data ke Firestore setiap hari sekali pada jam 6 pagi WIB
-     if (timeinfo->tm_hour == 6 && timeinfo->tm_min == 0 && timeinfo->tm_sec == 0) {
+    if (now.hour() == 6 && now.minute() == 0 && now.second() == 0) {
         // membuat objek JSON
         FirebaseJson json;
         String documentPath = "/admin/aquarium-1/update-harian/";
-        json.set("fields/ph/doubleValue", randNumber);
+        json.set("fields/ph/doubleValue", Temperature);
         json.set("fields/temp/doubleValue", Temperature);
         json.set("fields/turbidity/doubleValue", Po);
-        json.set("fields/created_at/string",dateStr);
+        json.set("fields/created_at/string",tanggal);
 
         // mengirim data JSON ke Firestore
         if (Firebase.Firestore.createDocument(&fbdo, FIREBASE_PROJECT_ID, "" /* databaseId can be (default) or empty */, documentPath.c_str(), json.raw())){
@@ -138,5 +164,6 @@ void loop(){
         
         
     }
+
 
 }
