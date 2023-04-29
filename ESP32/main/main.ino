@@ -14,6 +14,7 @@
 #include "ON.h"
 #include "OFF.h"
 #include "RTClib.h"
+#include "alert.h" // Out of range alert icon
 
 
 static const int servoPin = 12;
@@ -37,7 +38,13 @@ TFT_eSprite sprite = TFT_eSprite(&tft);
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", 7 * 3600); // GMT+7
 TwoWire myWire(1);
-
+uint32_t runTime = -99999; // time for next update
+int d = 0;       // Variable used for the sinewave test waveform
+boolean range_error = 0;
+#define TFT_GREY 0x2104 // Dark grey 16 bit colour
+ 
+unsigned long lastDebounceTime = 0; // the last time the output pin was toggled
+unsigned long debounceDelay = 1000; // the debounce time; increase if the output flickers
 
 void setup() {
     myWire.begin(25, 32); 
@@ -131,7 +138,10 @@ void loop(){
     tanggal += String(now.month(), DEC);
     tanggal += "-";
     tanggal += String(now.year(), DEC);
-
+    int angka_random = random(1,16);
+    ringMeter((float)Po, 0, 200, 180, 100, 60, "kekeruhan", GREEN2RED); // Draw analogue meter
+    ringMeter((int)angka_random, 0, 16, 300, 30, 60, "PH", RED2GREEN);
+    ringMeter(Temperature, -10, 50, 60, 30, 60, "C", BLUE2RED);
     if (tft.getTouch(&x, &y)) {
         if(SwitchOn){
             tft.drawString("ini tampilan monitor",160,150,2);
