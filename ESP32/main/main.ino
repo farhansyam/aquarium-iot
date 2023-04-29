@@ -36,6 +36,7 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", 7 * 3600); // GMT+7
 TwoWire myWire(1);
 
+
 void setup() {
     myWire.begin(25, 32); 
     if (! rtc.begin(&myWire)) {
@@ -128,39 +129,42 @@ void loop(){
     tanggal += String(now.month(), DEC);
     tanggal += "-";
     tanggal += String(now.year(), DEC);
-    Serial.print("Tanggal (format dd-mm-yyyy): ");
-    Serial.println(tanggal);
 
     //tft.pushImage(monitor_x, monitor_y, monitor_width, monitor_height, monitor);
     if (tft.getTouch(&x, &y)) {
+        if(SwitchOn){
+            if (x >= monitor_x && x <= monitor_x + monitor_width && y >= monitor_y && y <= monitor_y + monitor_height) {
+                tft.fillScreen(TFT_BLACK); // hapus layar
+                tft.pushImage(monitor_x, monitor_y, monitor_width, monitor_height, monitor);
+                tft.drawString("ini tampilan monitor",100,100,2);
+                SwitchOn = false;
 
-        tft.fillScreen(TFT_BLACK); // hapus layar
-        tft.setTextColor(TFT_RED, TFT_BLACK); // teks berwarna merah, latar belakang hitam
+             // contoh: tampilkan menu monitor
+            }
+        
+
+        }else{
+            if (x >= pompa_x && x <= pompa_x + pompa_width &&  y >= pompa_y && y <= pompa_y + pompa_height) {
+                tft.fillScreen(TFT_BLACK); // hapus layar
+                tft.pushImage(pompa_x, pompa_y, pompa_width, pompa_height, pompa);
+                tft.drawString("ini tampilan pompa",100,100,2);
+                // Aksi ketika gambar pompa di klik
+                // contoh: tampilkan menu pompa
+                SwitchOn = true;
+            }
+        }
+
         tft.setCursor(5, 5, 2);
         tft.printf("x: %i     ", x);
         tft.setCursor(5, 20, 2);
         tft.printf("y: %i    ", y);
         tft.drawPixel(x, y, color);
         color += 155;
-        // Cek apakah sentuhan berada di dalam koordinat gambar monitor
-        if (x >= monitor_x && x <= monitor_x + monitor_width && y >= monitor_y && y <= monitor_y + monitor_height) {
-            tft.pushImage(monitor_x, monitor_y, monitor_width, monitor_height, monitor);
-        // Aksi ketika gambar monitor di klik
-
-        // contoh: tampilkan menu monitor
-        }
-        
-        // Cek apakah sentuhan berada di dalam koordinat gambar pompa
-        else if (x >= pompa_x && x <= pompa_x + pompa_width &&  y >= pompa_y && y <= pompa_y + pompa_height) {
-            tft.pushImage(pompa_x, pompa_y, pompa_width, pompa_height, pompa);
-        // Aksi ketika gambar pompa di klik
-        // contoh: tampilkan menu pompa
-        }
     }
 
 
 
-
+    // Mengirim data ke Firestore setiap hari sekali pada jam 6 pagi WIB
     if (now.hour() == 6 && now.minute() == 0 && now.second() == 0) {
         // membuat objek JSON
         FirebaseJson json;
@@ -168,7 +172,7 @@ void loop(){
         json.set("fields/ph/doubleValue", Po);
         json.set("fields/temp/doubleValue", Temperature);
         json.set("fields/turbidity/doubleValue", Po);
-        json.set("fields/created_at/string",tanggal);
+        json.set("fields/created_at/stringValue",tanggal);
 
         // mengirim data JSON ke Firestore
         if (Firebase.Firestore.createDocument(&fbdo, FIREBASE_PROJECT_ID, "" /* databaseId can be (default) or empty */, documentPath.c_str(), json.raw())){
@@ -185,7 +189,7 @@ void loop(){
 
     //Serial.println(Temperature);
     //getServo();
-    // Mengirim data ke Firestore setiap hari sekali pada jam 6 pagi WIB
+
     unsigned long currentMillis = millis();
     // Jika sudah lewat waktu 1 menit sejak data terakhir dikirim
     if (Firebase.ready() && (currentMillis - previousMillis >= interval)) {
@@ -197,6 +201,7 @@ void loop(){
         Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/temp"), Temperature)  ? "data temperature suhu terkirim" : fbdo.errorReason().c_str());
         Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/turbidity"), Temperature) ? "data turbidity sukses terkirim" : fbdo.errorReason().c_str());
         Serial.println(Firebase.RTDB.setString(&fbdo,F("/admin/aquarium-1/updated_at"),tanggal) ? "data tanggal saat ini sukses terkirim" : fbdo.errorReason().c_str());
+
 
     }
 
