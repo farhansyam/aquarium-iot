@@ -11,6 +11,8 @@
 #include <WiFiUdp.h>
 #include "monitor.h"
 #include "pompa.h"
+#include "ON.h"
+#include "OFF.h"
 #include "RTClib.h"
 
 
@@ -130,29 +132,52 @@ void loop(){
     tanggal += "-";
     tanggal += String(now.year(), DEC);
 
-    //tft.pushImage(monitor_x, monitor_y, monitor_width, monitor_height, monitor);
     if (tft.getTouch(&x, &y)) {
         if(SwitchOn){
+            tft.drawString("ini tampilan monitor",160,150,2);
+            tft.pushImage(monitor_x, monitor_y, monitor_width, monitor_height, monitor);
             if (x >= monitor_x && x <= monitor_x + monitor_width && y >= monitor_y && y <= monitor_y + monitor_height) {
-                tft.fillScreen(TFT_BLACK); // hapus layar
-                tft.pushImage(monitor_x, monitor_y, monitor_width, monitor_height, monitor);
-                tft.drawString("ini tampilan monitor",100,100,2);
+                tft.fillScreen(TFT_BLACK);
+                tft.drawString("AKTIFKAN PENGURAS AIR",160,10,2);
+                tft.pushImage(pompa_x, pompa_y, pompa_width, pompa_height, pompa);
+                tft.pushImage(buttonOnOff_x,buttonOnOff_y,buttonOnOff_width,buttonOnOff_height,OFF);
                 SwitchOn = false;
 
              // contoh: tampilkan menu monitor
             }
+
         
 
         }else{
+            tft.drawString("AKTIFKAN PENGURAS AIR",160,10,2);
+            tft.pushImage(pompa_x, pompa_y, pompa_width, pompa_height, pompa);
             if (x >= pompa_x && x <= pompa_x + pompa_width &&  y >= pompa_y && y <= pompa_y + pompa_height) {
-                tft.fillScreen(TFT_BLACK); // hapus layar
-                tft.pushImage(pompa_x, pompa_y, pompa_width, pompa_height, pompa);
-                tft.drawString("ini tampilan pompa",100,100,2);
-                // Aksi ketika gambar pompa di klik
-                // contoh: tampilkan menu pompa
+                tft.fillScreen(TFT_BLACK);
+                tft.drawString("ini tampilan monitor",160,150,2);
+                tft.pushImage(monitor_x, monitor_y, monitor_width, monitor_height, monitor);
                 SwitchOn = true;
+                SwitchButton = true;
             }
+            if(SwitchButton){
+                if (x >= buttonOnOff_x && x <= buttonOnOff_x + buttonOnOff_width &&  y >= buttonOnOff_y && y <= buttonOnOff_y + buttonOnOff_height){
+                    tft.fillRect(buttonOnOff_x,buttonOnOff_y,buttonOnOff_width,buttonOnOff_height,TFT_BLACK);
+                    tft.pushImage(buttonOnOff_x,buttonOnOff_y,buttonOnOff_width,buttonOnOff_height,ON);
+                    SwitchButton = false;
+                }
+            }else{
+                if (x >= buttonOnOff_x && x <= buttonOnOff_x + buttonOnOff_width &&  y >= buttonOnOff_y && y <= buttonOnOff_y + buttonOnOff_height){
+                    tft.fillRect(buttonOnOff_x,buttonOnOff_y,buttonOnOff_width,buttonOnOff_height,TFT_BLACK);
+                    tft.pushImage(buttonOnOff_x,buttonOnOff_y,buttonOnOff_width,buttonOnOff_height,OFF);
+                    SwitchButton = true;
+                    
+                }
+                // kode untuk mengaktifkan pompa air
+            }
+            Serial.printf("switchbutton: %d \n",SwitchButton);
+            
+
         }
+        Serial.printf("SwitchOn: %d \n",SwitchOn);
 
         tft.setCursor(5, 5, 2);
         tft.printf("x: %i     ", x);
