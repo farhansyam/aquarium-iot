@@ -122,7 +122,7 @@ void loop(){
     uint16_t x, y;
     static uint16_t color;
     DateTime now = rtc.now();
-    float Temperature = GetSuhu();
+    int Temperature = GetSuhu();
 
 
     // format tanggal
@@ -138,13 +138,14 @@ void loop(){
     tanggal += String(now.month(), DEC);
     tanggal += "-";
     tanggal += String(now.year(), DEC);
-    int angka_random = random(1,16);
-    ringMeter((float)Po, 0, 200, 180, 100, 60, "kekeruhan", GREEN2RED); // Draw analogue meter
-    ringMeter((int)angka_random, 0, 16, 300, 30, 60, "PH", RED2GREEN);
-    ringMeter(Temperature, -10, 50, 60, 30, 60, "C", BLUE2RED);
+    float angka_random = random(0, 100) / 1.0 + 1.0;
+    if(SwitchOn){
+        ringMeter(int(angka_random), 0, 100, 180, 100, 60, "kekeruhan", GREEN2RED); // Draw analogue meter
+        ringMeter(Po, 0, 16, 300, 30, 60, "PH", RED2GREEN);
+        ringMeter(Temperature, -10, 50, 60, 30, 60, "C", BLUE2RED);
+    }
     if (tft.getTouch(&x, &y)) {
         if(SwitchOn){
-            tft.drawString("ini tampilan monitor",160,150,2);
             tft.pushImage(monitor_x, monitor_y, monitor_width, monitor_height, monitor);
             if (x >= monitor_x && x <= monitor_x + monitor_width && y >= monitor_y && y <= monitor_y + monitor_height) {
                 tft.fillScreen(TFT_BLACK);
@@ -159,24 +160,23 @@ void loop(){
         
 
         }else{
-            tft.drawString("AKTIFKAN PENGURAS AIR",160,10,2);
+            tft.drawString("AKTIFKAN PENGURAS AIR",180,10,2);
             tft.pushImage(pompa_x, pompa_y, pompa_width, pompa_height, pompa);
             if (x >= pompa_x && x <= pompa_x + pompa_width &&  y >= pompa_y && y <= pompa_y + pompa_height) {
                 tft.fillScreen(TFT_BLACK);
-                tft.drawString("ini tampilan monitor",160,150,2);
                 tft.pushImage(monitor_x, monitor_y, monitor_width, monitor_height, monitor);
                 SwitchOn = true;
                 SwitchButton = true;
             }
             if(SwitchButton){
-                if (x >= buttonOnOff_x && x <= buttonOnOff_x + buttonOnOff_width &&  y >= buttonOnOff_y && y <= buttonOnOff_y + buttonOnOff_height){
-                    tft.fillRect(buttonOnOff_x,buttonOnOff_y,buttonOnOff_width,buttonOnOff_height,TFT_BLACK);
+                if (x >= buttonOnOff_x && x <= buttonOnOff_x + buttonOnOff_width+5 &&  y >= buttonOnOff_y+15 && y <= buttonOnOff_y+15 + buttonOnOff_height-40){
+                    tft.fillRect(buttonOnOff_x,buttonOnOff_y+15,buttonOnOff_width+5,buttonOnOff_height-40,TFT_BLACK);
                     tft.pushImage(buttonOnOff_x,buttonOnOff_y,buttonOnOff_width,buttonOnOff_height,ON);
                     SwitchButton = false;
                 }
             }else{
-                if (x >= buttonOnOff_x && x <= buttonOnOff_x + buttonOnOff_width &&  y >= buttonOnOff_y && y <= buttonOnOff_y + buttonOnOff_height){
-                    tft.fillRect(buttonOnOff_x,buttonOnOff_y,buttonOnOff_width,buttonOnOff_height,TFT_BLACK);
+                if (x >= buttonOnOff_x && x <= buttonOnOff_x + buttonOnOff_width+5 &&  y >= buttonOnOff_y+15 && y <= buttonOnOff_y + buttonOnOff_height-40){
+                    tft.fillRect(buttonOnOff_x,buttonOnOff_y+15,buttonOnOff_width+5,buttonOnOff_height-40,TFT_BLACK);
                     tft.pushImage(buttonOnOff_x,buttonOnOff_y,buttonOnOff_width,buttonOnOff_height,OFF);
                     SwitchButton = true;
                     

@@ -78,7 +78,6 @@ int ringMeter(float value, int vmin, int vmax, int x, int y, int r, const char *
   }
   // Convert value to a string
   char buf[10];
-  Serial.println(value);
 
   if (value - (int)value != 0) {  // Cek apakah nilai merupakan float
     dtostrf(value, 5, 2, buf);    // Menampilkan dua digit setelah koma untuk float
@@ -86,7 +85,9 @@ int ringMeter(float value, int vmin, int vmax, int x, int y, int r, const char *
     byte len = 3;
     if (value > 999)
       len = 5;
-    dtostrf(value, len, 1, buf);
+    dtostrf(value, len, 0, buf);
+    buf[len] = ' ';
+    buf[len + 1] = 0; 
   }
 
   buf[strlen(buf) + 1] = 0;       // Add blanking space and terminator, helps to centre text too!
