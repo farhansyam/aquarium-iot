@@ -23,7 +23,7 @@ const unsigned long interval = 60000; // interval waktu dalam milidetik (1 menit
 const char* ntpServer = "0.id.pool.ntp.org";
 const long  gmtOffset_sec = 0;
 const int   daylightOffset_sec = 3600;
-char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+char daysOfTheWeek[7][12] = {"Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"};
 
 RTC_DS1307 rtc;
 FirebaseData firebaseData;
@@ -46,8 +46,9 @@ boolean range_error = 0;
 unsigned long lastDebounceTime = 0; // the last time the output pin was toggled
 unsigned long debounceDelay = 1000; // the debounce time; increase if the output flickers
 
+
 void setup() {
-    myWire.begin(25, 32); 
+    myWire.begin(25, 32);
     if (! rtc.begin(&myWire)) {
         Serial.println("Couldn't find RTC");
         Serial.flush();
@@ -123,8 +124,7 @@ void loop(){
     static uint16_t color;
     DateTime now = rtc.now();
     int Temperature = GetSuhu();
-
-
+    Serial.printf("suhu saat ini: %d\n",Temperature);
     // format tanggal
     String tanggal = "";
     if (now.day() < 10) {
@@ -139,28 +139,28 @@ void loop(){
     tanggal += "-";
     tanggal += String(now.year(), DEC);
     float angka_random = random(0, 100) / 1.0 + 1.0;
+
     if(SwitchOn){
-        ringMeter(int(angka_random), 0, 100, 180, 100, 60, "kekeruhan", GREEN2RED); // Draw analogue meter
-        ringMeter(Po, 0, 16, 300, 30, 60, "PH", RED2GREEN);
-        ringMeter(Temperature, -10, 50, 60, 30, 60, "C", BLUE2RED);
+        ringMeter(int(angka_random), 0, 100, 185, 110, 65, "kekeruhan", GREEN2RED); // Draw analogue meter
+        ringMeter(Po, 0, 16, 310, 30, 65, "PH", RED2GREEN);
+        ringMeter(Temperature, -10, 40, 60, 30, 65, "C", BLUE2RED);
     }
     if (tft.getTouch(&x, &y)) {
         if(SwitchOn){
             tft.pushImage(monitor_x, monitor_y, monitor_width, monitor_height, monitor);
             if (x >= monitor_x && x <= monitor_x + monitor_width && y >= monitor_y && y <= monitor_y + monitor_height) {
                 tft.fillScreen(TFT_BLACK);
-                tft.drawString("AKTIFKAN PENGURAS AIR",160,10,2);
+                //tft.drawString("PENGURAS AIR",220,10,2);
                 tft.pushImage(pompa_x, pompa_y, pompa_width, pompa_height, pompa);
                 tft.pushImage(buttonOnOff_x,buttonOnOff_y,buttonOnOff_width,buttonOnOff_height,OFF);
                 SwitchOn = false;
-
              // contoh: tampilkan menu monitor
             }
 
         
 
         }else{
-            tft.drawString("AKTIFKAN PENGURAS AIR",180,10,2);
+            //tft.drawString("PENGURAS AIR",220,10,2);
             tft.pushImage(pompa_x, pompa_y, pompa_width, pompa_height, pompa);
             if (x >= pompa_x && x <= pompa_x + pompa_width &&  y >= pompa_y && y <= pompa_y + pompa_height) {
                 tft.fillScreen(TFT_BLACK);
@@ -169,13 +169,13 @@ void loop(){
                 SwitchButton = true;
             }
             if(SwitchButton){
-                if (x >= buttonOnOff_x && x <= buttonOnOff_x + buttonOnOff_width+5 &&  y >= buttonOnOff_y+15 && y <= buttonOnOff_y+15 + buttonOnOff_height-40){
+                if (x >= buttonOnOff_x && x <= buttonOnOff_x + buttonOnOff_width+5 &&  y >= buttonOnOff_y+15 && y <= buttonOnOff_y+15 + buttonOnOff_height-30){
                     tft.fillRect(buttonOnOff_x,buttonOnOff_y+15,buttonOnOff_width+5,buttonOnOff_height-40,TFT_BLACK);
                     tft.pushImage(buttonOnOff_x,buttonOnOff_y,buttonOnOff_width,buttonOnOff_height,ON);
                     SwitchButton = false;
                 }
             }else{
-                if (x >= buttonOnOff_x && x <= buttonOnOff_x + buttonOnOff_width+5 &&  y >= buttonOnOff_y+15 && y <= buttonOnOff_y + buttonOnOff_height-40){
+                if (x >= buttonOnOff_x && x <= buttonOnOff_x + buttonOnOff_width+5 &&  y >= buttonOnOff_y+15 && y <= buttonOnOff_y + buttonOnOff_height-30){
                     tft.fillRect(buttonOnOff_x,buttonOnOff_y+15,buttonOnOff_width+5,buttonOnOff_height-40,TFT_BLACK);
                     tft.pushImage(buttonOnOff_x,buttonOnOff_y,buttonOnOff_width,buttonOnOff_height,OFF);
                     SwitchButton = true;
@@ -188,14 +188,14 @@ void loop(){
 
         }
         Serial.printf("SwitchOn: %d \n",SwitchOn);
-
-        tft.setCursor(5, 5, 2);
-        tft.printf("x: %i     ", x);
-        tft.setCursor(5, 20, 2);
-        tft.printf("y: %i    ", y);
-        tft.drawPixel(x, y, color);
-        color += 155;
     }
+    char str_time[7]; // buat array karakter untuk menampung string waktu
+    sprintf(str_time, "%02d:%02d", now.hour(), now.minute()); // format string waktu menjadi "hh:mm:ss"
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.drawString(str_time,240,27,7); // cetak string waktu
+    tft.setTextColor(TFT_GREEN, TFT_BLACK);
+    tft.setCursor (220, 55);
+    tft.print(tanggal); // This uses the standard ADAFruit small font
 
 
 
@@ -243,3 +243,5 @@ void loop(){
 
 
 }
+
+

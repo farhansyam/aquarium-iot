@@ -88,6 +88,7 @@ int ringMeter(float value, int vmin, int vmax, int x, int y, int r, const char *
     dtostrf(value, len, 0, buf);
     buf[len] = ' ';
     buf[len + 1] = 0; 
+    //digitalclock();
   }
 
   buf[strlen(buf) + 1] = 0;       // Add blanking space and terminator, helps to centre text too!
