@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "aquarium-iot-27650",
+  "private_key_id": "6fa9c0492fc0a8c74ac5b652c519be742f0e0598",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCvQVPxhvwd/MIE\nynRhecd14bYJSwdIGoN7m0Z4RtAvnc8bshzuoMiZgeEtlvit7vwXSLhlKvoQWOkF\niqrYEgQHgd5l/z7YPz2X0g4dgH+H9nLessToOXpbrFjMkynrzBB524qEPD2VWZ69\n0WjESA29ZLOQoth7O37RhX5LabYEfXQwIkxEfaLF4hL3H8k8gi+nDTC+ozJJM6Yq\n9muMM9TKosoB6FvniYusgmx56ELOguFAxoh5CA3eusUfPkZAA2/vhDnc7nM6GJS5\nVgWkfJCtkQzWL8+uP5AqhOKD8+gMurkq97RpCpLyHyEIYwIsjBbMPe0Z13PUDvAP\n48vXPA63AgMBAAECggEAOfF7c4uRp8h9zV+ygtfknpD1wrTPv4MknaWE8xdWlaez\nZhDJiAwYxsguTwhvR/KP3pLohGplKyp6QJ7MRYwPUPwbL9XoTU77akrE5/QoNifB\naufoOm9miRC+e0Tcw11AxUlUzsusAMkUtuWZoevAvzGgPN3afUP6dgOQ8hYNXAYi\nYKBeI3b+0zUDHBrVcx7zyUCtf8GqJkpw7rmKBX232Kl3/BRPN6mr99aHHc8OBEeG\nl1yjlpm9/SmgpM436uTFeVZZUEDYwJ5aBXaoCd07cCF2k7T7cc5MAEpDgBth0BDE\nOl131UZNG18IVZJlgCuoGyYH/1/SYhuSkVppmOp2AQKBgQDYHwy6bVxlRlmObNQP\nuZnCEbgqPHtL3TKFqzILm+aiK9fHWdaVB6/fVpZH2oa88Z5i/4u0xtFjeBhr25vq\npZ00dUqB9VnE3gjrbtlTHebBMx7YmrYfy/lB9hS3rwQuJBcizntkrA3mKYBXmI/z\n6xZahNzz4KHft0j6XMiqC/T2QQKBgQDPl+F1QDg6Znz1kdWPSUt+vFy+SsdUA+L8\nMNDjtQrUsHPDZ/u3IzsHw2QlI3FzfLP4z0BGKmBjVj1uH68P1Zs0dVAKVxXr65ii\nA+wFXSvvjQITFxdmLLvQ/HUJlLmjwD/qWaFJ/M7mg5LhlC5q5kjKC5JGPQoUcayG\n0egzGUD29wKBgHSlbY1BcVkH+1YvztUd66sfPTMuqa1smdQjbkNtxbFJ0JC8IGEX\nYQk+BqaJf6eDEWWFX7YWiPUS4Lt2MFUZRhwGIky6S9VBsbbAgXOm8+Da4o8uEZZf\n1QyQ8OWjBLKSsBoNL/RKGMZdJ/QfV7Li85GvnEHUwAmrNyxJ39RH19MBAoGAJq+C\nF2yZTeDNhqHfr20UQZDuo5Oh47k5so+STezuEMa1PAQDt5Q8Ku0xm24odUIW89YD\nf0/kWH64we3rnMLMwpDeEp85+ZYVApRChplfV6vqaA5UkPjjI0X4tYlesvJfttdv\nJC+ViwWX+Ku5nrg9dlGDt80mNLseUJ2LbQJWxe8CgYEAtF1kAFIlqgRChaTTWtKL\n6SFctWEgeHkebQvBisIx6AIQTsJKpgXj2gFUV1ZXxZIH+cAlV5FMh2svYYIjHj49\noknqe0r6EBoI+R+wIqSfcoSEY9pKYjC6LGR3ckuwVnW0vyIRglNCsxqlysEXcGiC\n2fkOlWCBTv/I1ZvHdy5ysKs=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-wefwz@aquarium-iot-27650.iam.gserviceaccount.com",
+  "client_id": "115310176153276435604",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-wefwz%40aquarium-iot-27650.iam.gserviceaccount.com"
+}
