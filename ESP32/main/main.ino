@@ -145,6 +145,20 @@ void loop(){
     tanggal += String(now.month(), DEC);
     tanggal += "-";
     tanggal += String(now.year(), DEC);
+
+    String waktu = "";
+    if (now.hour() < 10) {
+        waktu += "0";
+    }
+    waktu += String(now.hour(), DEC);
+    waktu += ":";
+    if (now.minute() < 10) {
+        waktu += "0";
+    }
+    waktu += String(now.minute(), DEC);
+    Serial.println(waktu);
+
+
     float angka_random = random(0, 100) / 1.0 + 1.0;
 
     if(SwitchOn){
@@ -286,10 +300,16 @@ void loop(){
             }
             Serial.printf("pakan no 1: %s \n pakan no 2: %s \n  pakan no 3: %s",EEPROM.readString(addressFeedtime0),EEPROM.readString(addressFeedtime1),EEPROM.readString(addressFeedtime2));
         }
+        localVarFeedTime[0] = EEPROM.readString(addressFeedtime0);
+        localVarFeedTime[1] = EEPROM.readString(addressFeedtime1);
+        localVarFeedTime[2] = EEPROM.readString(addressFeedtime2);
+        Serial.printf("waktu pakan no 1: %s \n waktu pakan no 2: %s \n  waktu pakan no 3: %s",localVarFeedTime[0],localVarFeedTime[1],localVarFeedTime[2]);
+        int timedel = 1000;
+        getServo(waktu,localVarFeedTime,numFeed,timedel);
+
 
 
     }
-
 
 
 }
