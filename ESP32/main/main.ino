@@ -15,6 +15,7 @@
 #include "OFF.h"
 #include "RTClib.h"
 #include "alert.h" // Out of range alert icon
+#include <EEPROM.h> 
 
 
 static const int servoPin = 12;
@@ -49,6 +50,7 @@ unsigned long debounceDelay = 1000; // the debounce time; increase if the output
 
 void setup() {
     myWire.begin(25, 32);
+    pinMode(relay1,OUTPUT);
     if (! rtc.begin(&myWire)) {
         Serial.println("Couldn't find RTC");
         Serial.flush();
@@ -59,7 +61,12 @@ void setup() {
         Serial.println("RTC is NOT running, let's set the time!");
         rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     }
-
+    if (!EEPROM.begin(1000)) {
+        Serial.println("Failed to initialise EEPROM");
+        Serial.println("Restarting...");
+        delay(1000);
+        ESP.restart();
+    }
     tft.init();
     tft.fillScreen(TFT_BLACK);
     tft.setRotation(1);
@@ -141,9 +148,9 @@ void loop(){
     float angka_random = random(0, 100) / 1.0 + 1.0;
 
     if(SwitchOn){
-        ringMeter(int(angka_random), 0, 100, 185, 110, 65, "kekeruhan", GREEN2RED); // Draw analogue meter
-        ringMeter(Po, 0, 16, 310, 30, 65, "PH", RED2GREEN);
-        ringMeter(Temperature, -10, 40, 60, 30, 65, "C", BLUE2RED);
+        ringMeter(int(angka_random), 0, 100, 185, 100, 63, "kekeruhan", GREEN2RED); // Draw analogue meter
+        ringMeter(Po, 0, 16, 310, 25, 63, "PH", RED2GREEN);
+        ringMeter(Temperature, -10, 40, 60, 25, 63, "C", BLUE2RED);
     }
     if (tft.getTouch(&x, &y)) {
         if(SwitchOn){
@@ -165,6 +172,7 @@ void loop(){
             if (x >= pompa_x && x <= pompa_x + pompa_width &&  y >= pompa_y && y <= pompa_y + pompa_height) {
                 tft.fillScreen(TFT_BLACK);
                 tft.pushImage(monitor_x, monitor_y, monitor_width, monitor_height, monitor);
+                digitalWrite(relay1,HIGH);
                 SwitchOn = true;
                 SwitchButton = true;
             }
@@ -172,13 +180,16 @@ void loop(){
                 if (x >= buttonOnOff_x && x <= buttonOnOff_x + buttonOnOff_width+5 &&  y >= buttonOnOff_y+15 && y <= buttonOnOff_y+15 + buttonOnOff_height-30){
                     tft.fillRect(buttonOnOff_x,buttonOnOff_y+15,buttonOnOff_width+5,buttonOnOff_height-40,TFT_BLACK);
                     tft.pushImage(buttonOnOff_x,buttonOnOff_y,buttonOnOff_width,buttonOnOff_height,ON);
+                    digitalWrite(relay1,LOW);
                     SwitchButton = false;
                 }
             }else{
                 if (x >= buttonOnOff_x && x <= buttonOnOff_x + buttonOnOff_width+5 &&  y >= buttonOnOff_y+15 && y <= buttonOnOff_y + buttonOnOff_height-30){
                     tft.fillRect(buttonOnOff_x,buttonOnOff_y+15,buttonOnOff_width+5,buttonOnOff_height-40,TFT_BLACK);
                     tft.pushImage(buttonOnOff_x,buttonOnOff_y,buttonOnOff_width,buttonOnOff_height,OFF);
+                    digitalWrite(relay1,HIGH);
                     SwitchButton = true;
+                    
                     
                 }
                 // kode untuk mengaktifkan pompa air
@@ -197,12 +208,10 @@ void loop(){
     tft.setCursor (220, 55);
     tft.print(tanggal); // This uses the standard ADAFruit small font
 
-
-
+    FirebaseJson json;
     // Mengirim data ke Firestore setiap hari sekali pada jam 6 pagi WIB
     if (now.hour() == 6 && now.minute() == 0 && now.second() == 0) {
         // membuat objek JSON
-        FirebaseJson json;
         String documentPath = "/admin/aquarium-1/update-harian/";
         json.set("fields/ph/doubleValue", Po);
         json.set("fields/temp/doubleValue", Temperature);
@@ -230,12 +239,53 @@ void loop(){
     if (Firebase.ready() && (currentMillis - previousMillis >= interval)) {
         // Simpan nilai millis saat ini ke dalam previousMillis
         previousMillis = currentMillis;
+        FirebaseJson jVal;
+        FirebaseJsonData result1;
+        FirebaseJsonData result2;
+        FirebaseJsonData result3;
 
+
+        
         // Kirim data ke Realtime database
         Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/ph"), Po) ? "data ph terkirim" : fbdo.errorReason().c_str());
         Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/temp"), Temperature)  ? "data temperature suhu terkirim" : fbdo.errorReason().c_str());
         Serial.println(Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/turbidity"), Temperature) ? "data turbidity sukses terkirim" : fbdo.errorReason().c_str());
         Serial.println(Firebase.RTDB.setString(&fbdo,F("/admin/aquarium-1/updated_at"),tanggal) ? "data tanggal saat ini sukses terkirim" : fbdo.errorReason().c_str());
+
+
+        //baca data dari rtdb untuk pakan  
+        Serial.printf("Get json ref... %s\n", Firebase.RTDB.getJSON(&fbdo, "/admin/aquarium-1/pakan", &jVal) ? jVal.raw() : fbdo.errorReason().c_str());
+        jVal.get(result1,"/feed_time_1");
+        jVal.get(result2,"/feed_time_2");
+        jVal.get(result3,"/feed_time_3");
+        if(result1.success && result2.success && result3.success){
+           //Serial.printf("pakan no 1: %s \n pakan no 2: %s \n  pakan no 3: %s",result1.to<String>(),result2.to<String>(),result3.to<String>());
+            myRtdbFeedTime[0]= result1.to<String>();
+            myRtdbFeedTime[1]= result2.to<String>();
+            myRtdbFeedTime[2]= result3.to<String>();
+
+
+            if(EEPROM.readString(addressFeedtime0) != myRtdbFeedTime[0]){
+                EEPROM.writeString(addressFeedtime0, myRtdbFeedTime[0]);
+                EEPROM.commit();
+                Serial.printf("data disimpan ke EEPROM addressFeedtime0 dengan nilai string: %s",myRtdbFeedTime[0]);
+            }
+            else if(EEPROM.readString(addressFeedtime1) != myRtdbFeedTime[1]){
+                EEPROM.writeString(addressFeedtime1, myRtdbFeedTime[1]);
+                EEPROM.commit();
+                Serial.printf("data disimpan ke EEPROM addressFeedtime1 dengan nilai string: %s",myRtdbFeedTime[1]);
+
+            }
+            else if(EEPROM.readString(addressFeedtime2) != myRtdbFeedTime[2]){
+                EEPROM.writeString(addressFeedtime2, myRtdbFeedTime[2]);
+                EEPROM.commit();
+                Serial.printf("data disimpan ke EEPROM addressFeedtime2 dengan nilai string: %s",myRtdbFeedTime[2]);
+
+            }else{
+                Serial.printf("data sudah sama dengan eeprom");
+            }
+            Serial.printf("pakan no 1: %s \n pakan no 2: %s \n  pakan no 3: %s",EEPROM.readString(addressFeedtime0),EEPROM.readString(addressFeedtime1),EEPROM.readString(addressFeedtime2));
+        }
 
 
     }
