@@ -22,4 +22,6 @@ Auth::routes();
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/info', [App\Http\Controllers\HomeController::class, 'info'])->name('info');
 Route::get('/about', [App\Http\Controllers\HomeController::class, 'about'])->name('about');
-Route::get('/log', [App\Http\Controllers\HomeController::class, 'log'])->name('log');
+Route::get('/log', [App\Http\Controllers\HomeController::class, 'read'])->name('log');
+Route::get('/read', [App\Http\Controllers\FirebaseController::class, 'detailApi'])->name('read');
+Route::get('/fd1', [App\Http\Controllers\FirebaseController::class, 'fd1'])->name('setfeedtime');

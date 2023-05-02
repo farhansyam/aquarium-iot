@@ -61,20 +61,6 @@
                 </label>
                 
                 <div class="header-menu">
-                    <label for="">
-                        <span class="las la-search"></span>
-                    </label>
-                    
-                    <div class="notify-icon">
-                        <span class="las la-envelope"></span>
-                        <span class="notify">4</span>
-                    </div>
-                    
-                    <div class="notify-icon">
-                        <span class="las la-bell"></span>
-                        <span class="notify">3</span>
-                    </div>
-                    
                     <div class="user">
                         <div class="bg-img" style="background-image: url(img/logo.jpeg)"></div>
                     <a href="./login/login.html">
@@ -120,10 +106,11 @@
 
                     <div class="card">
                         <div class="card-head">
-                            <h2>Suhu</h2>
+                            <h2>Suhu : <div class="temp"> <!-- {{$temp}} --> {{$temp}}</h2>
                         </div>
                         <div class="card-progress">
                             <small>Monitoring Suhu</small>
+
                             <div class="card-indicator">
                                 <div class="indicator two" style="width: 100%"></div>
                             </div>
@@ -132,22 +119,22 @@
 
                     <div class="card">
                         <div class="card-head">
-                            <h2>PH</h2>
+                            <h2>PH :<div class="ph"> <!-- {{$phs}} --> {{$phs}}</div></h2>
                         </div>
                         <div class="card-progress">
                             <small>Monitoring PH</small>
                             <div class="card-indicator">
                                 <div class="indicator three" style="width: 100%"></div>
-                            </div>
+                            </div> 
                         </div>
                     </div>
 
                     <div class="card">
                         <div class="card-head">
-                            <h2>Oksigen</h2>
+                            <h2>Kekeruhan : <div class="turbidity"> <!-- {{$turb}} --> {{$turb}} </div></h2>
                         </div>
                         <div class="card-progress">
-                            <small>Pengecekan Kecepatan Oksigen</small>
+                            <small>Pengecekan Kekeruhan Air</small>
                             <div class="card-indicator">
                                 <div class="indicator four" style="width: 100%"></div>
                             </div>
@@ -165,11 +152,13 @@
                     <div>
                         <table width="100%">
                             <thead>
+                                <form action="{{route('setfeedtime')}}">
                                 <tr>
-                                    <th><span class="las la-sort"></span> CLIENT</th>
+                                    <th><span class="las la-sort"></span> NO</th>
                                     <th><span class="las la-sort"></span> WAKTU</th>
-                                    <th><span class="las la-sort"></span> DATE</th>
-                                    <th><span class="las la-sort"></span> STATUS</th>
+                                      <th>
+                                        <button type="submit">Set</button>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -177,56 +166,40 @@
                                     <td>
                                         <div class="client">
                                             <div class="client-info">
-                                                <h4>Andrew Bruno</h4>
+                                                <h4>1</h4>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        08.00
-                                    </td>
-                                    <td>
-                                        19 April, 2022 
-                                    </td>
-                                    <td>
-                                       SUKSES
+                                        <input type="time" id="fd1" name="fd1" value="{{$fd1}}">
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>
                                         <div class="client">
                                             <div class="client-info">
-                                                <h4>Andrew Bruno</h4>
+                                                <h4>2</h4>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        08.00
+                                        <input type="time" id="fd2" name="fd2" value="{{$fd2}}">
                                     </td>
-                                    <td>
-                                        19 April, 2022 
-                                    </td>
-                                    <td>
-                                       SUKSES
-                                    </td>
+                                  
                                 </tr>
                                 <tr>
                                     <td>
                                         <div class="client">
                                             <div class="client-info">
-                                                <h4>Andrew Bruno</h4>
+                                                3
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        08.00
-                                    </td>
-                                    <td>
-                                        19 April, 2022 
-                                    </td>
-                                    <td>
-                                       SUKSES
+                                        <input type="time" id="fd3" name="fd3" value="{{$fd3}}">
                                     </td>
                                 </tr>
+                            </form>
                                              
             
                                              
@@ -241,5 +214,28 @@
         </main>
         
     </div>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+          <script>
+
+            // realtime monitor
+        setInterval(function()
+        {
+          var second = parseInt((new Date().getTime() / 1000) % 30);
+            if(second === 0) {
+                var url = "{{route('read')}}";
+                $.get(url, function(data, status) {
+                  $(".temp").text(data.temp);
+                  $(".ph").text(Math.ceil(data.ph));
+                  $(".feed").text(data.temp);
+                  $(".turbidity").text(Math.ceil(data.turbidity));
+                  console.log('update data monitoring')
+                  console.log(url)
+                  console.log(data)
+                  console.log(data.ph)
+                  }
+                );
+              }
+        },1000); // or less than 1 sec    
+          </script>
 </body>
 </html>
