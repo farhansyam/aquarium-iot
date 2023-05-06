@@ -14,6 +14,9 @@
 #include "RTClib.h"
 #include "wifi_idle.h"
 #include "alert.h" // Out of range alert icon
+#include "lost connections.h" // Out of range alert icon
+#include "loading.h"
+#include "connections.h"
 #include <EEPROM.h> 
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 
@@ -38,6 +41,7 @@ TwoWire myWire(1);
 //int d = 0;       // Variable used for the sinewave test waveform
 boolean range_error = 0;
 #define TFT_GREY 0x2104 // Dark grey 16 bit colour
+WiFiManager wm;
  
 //unsigned long lastDebounceTime = 0; // the last time the output pin was toggled
 //unsigned long debounceDelay = 1000; // the debounce time; increase if the output flickers
@@ -68,6 +72,7 @@ void setup() {
     tft.setRotation(1);
     uint16_t calData[5] = { 261, 3521, 367, 3422, 7 };
     tft.setTouch(calData);
+    wm.setCleanConnect(true);
 
     /*sprite.setColorDepth(8);
     sprite.createSprite(LOADING_BAR_WIDTH, LOADING_BAR_HEIGHT + 20);*/
@@ -78,7 +83,7 @@ void setup() {
     servo1.attach(servoPin);
     while(!Serial){delay(100);}
     
-    // We start by connecting to a WiFi network
+    /*// We start by connecting to a WiFi network
     Serial.println();
     Serial.println("******************************************************");
     Serial.print("Connecting to ");
@@ -90,7 +95,7 @@ void setup() {
         delay(500);
         Serial.print(".");
     }
-
+    */
     Serial.println(F("IP address: "));
     Serial.println(WiFi.localIP());
     sensor.begin();
@@ -107,10 +112,10 @@ void setup() {
     } else {
         Serial.println(F("Firebase connection failed"));
     }
-    /*for (int i = 0; i <= 100; i += 5) { // Change the increment value and max value to adjust loading speed
+    for (int i = 0; i <= 100; i += 5) { // Change the increment value and max value to adjust loading speed
         drawLoadingBar();
         delay(100); // Change the delay time to adjust loading speed
-    }*/
+    }
     tft.setSwapBytes(true);
     tft.fillScreen(TFT_BLACK);
 
@@ -118,7 +123,7 @@ void setup() {
 void loop(){
 
 
-
+    Serial.println(WiFi.status());
     PHsensor();
     static uint16_t color;
     DateTime now = rtc.now();
@@ -134,7 +139,7 @@ void loop(){
         ringMeter(angka_random, 0, 100, 180, 100, 63, "kekeruhan", GREEN2RED); // Draw analogue meter
         ringMeter(Po, 0, 16, 310, 25, 63, "PH", RED2GREEN);
         ringMeter(Temperature, -10, 50, 50, 25, 63, "C", BLUE2RED);
-        //tft.pushImage(wifilogo_x,wifilogo_y,wifilogo_width,wifilogo_height,wifi_idle);
+        wm.process();
     }
     menu();
 
@@ -151,10 +156,10 @@ void loop(){
     if (now.hour() == 6 && now.minute() == 0 && now.second() == 0 && Firebase.ready()) {
         // membuat objek JSON
         String documentPath = "/admin/aquarium-1/update-harian/";
-        json.set("fields/ph/doubleValue", Po);
-        json.set("fields/temp/doubleValue", Temperature);
-        json.set("fields/turbidity/doubleValue", Po);
-        json.set("fields/created_at/stringValue",tanggal);
+        json.set(F("fields/ph/doubleValue"), Po);
+        json.set(F("fields/temp/doubleValue"), Temperature);
+        json.set(F("fields/turbidity/doubleValue"), Po);
+        json.set(F("fields/created_at/stringValue"),tanggal);
 
         // mengirim data JSON ke Firestore
         if (Firebase.Firestore.createDocument(&fbdo, FIREBASE_PROJECT_ID, "" /* databaseId can be (default) or empty */, documentPath.c_str(), json.raw())){
@@ -218,7 +223,7 @@ void loop(){
                 //Serial.printf("data disimpan ke EEPROM addressFeedtime2 dengan nilai string: %s",myRtdbFeedTime[2]);
 
             }else{
-                //Serial.printf("data sudah sama dengan eeprom");
+                Serial.println(F("data sudah sama dengan eeprom"));
             }
             //Serial.printf("pakan no 1: %s \n pakan no 2: %s \n  pakan no 3: %s",EEPROM.readString(addressFeedtime0),EEPROM.readString(addressFeedtime1),EEPROM.readString(addressFeedtime2));
         }

@@ -2,6 +2,7 @@ void menu(){
     if (tft.getTouch(&x, &y)) {
         if(SwitchOn){
             tft.pushImage(monitor_x, monitor_y, monitor_width, monitor_height, monitor);
+            tft.pushImage(wifilogo_x,wifilogo_y,wifilogo_width,wifilogo_height,lost_connections);
             if (x >= monitor_x && x <= monitor_x + monitor_width && y >= monitor_y && y <= monitor_y + monitor_height) {
                 tft.fillScreen(TFT_BLACK);
                 //tft.drawString("PENGURAS AIR",220,10,2);
@@ -11,8 +12,22 @@ void menu(){
              // contoh: tampilkan menu monitor
             }
             if(x >= wifilogo_x && x <= wifilogo_x + wifilogo_width && y >= wifilogo_y && y <= wifilogo_y + wifilogo_height){
-                //untuk aktifkan wifi
-                //wifimanager();
+                //wm.resetSettings();
+                wm.setConnectTimeout(5);
+                // res = wm.autoConnect(); // auto generated AP name from chipid
+                // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
+                bool res = wm.autoConnect("AutoConnectAP","password"); // password protected 
+                wm.setCleanConnect(true);
+                if(WiFi.status() == 3){
+                    tft.fillRect(wifilogo_x,wifilogo_y,wifilogo_width,wifilogo_height,TFT_BLACK);
+                    tft.pushImage(wifilogo_x,wifilogo_y,wifilogo_width,wifilogo_height,connections);
+                    Serial.println("conected");
+                }
+                if(!res) {
+                    Serial.println("Failed to connect");
+                    ESP.restart();
+                } 
+
             }
 
         

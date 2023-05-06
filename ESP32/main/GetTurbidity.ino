@@ -21,7 +21,7 @@ float getTurbidity (){
     tft.print("KERUH ="); tft.print(kekeruhan); tft.println(" NTU");
     }
   else{
-    Serial.print("tegangan :");
+    Serial.print(F("tegangan :"));
     Serial.print(VFinal);
     Serial.print(" V");
     Serial.print("\t kekeruhan :");
