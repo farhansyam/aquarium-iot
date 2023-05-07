@@ -1,34 +1,37 @@
-float getTurbidity (){
-  V = 0;
-  for(int i=0; i<800; i++)
-  {
-    V += ((float)analogRead(14)/1023)*5;
+void getTurbidity (){
+  unsigned long previousMillis = 0;
+  const long interval = 100;
+  unsigned long currentMillis = millis();
+
+  if(currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+
+    int totalADCValue = 0;
+    int numReadings = 1000;
+
+    for(int i=0; i<numReadings; i++){
+      V = ((float)analogRead(pinTurb)/4095)*3.3; // Mengubah rumus untuk tegangan dan ADC ESP32
+      int ADCValue = round(V*4095/3.3); // Menghitung nilai ADC yang sesuai dengan tegangan
+      totalADCValue += ADCValue;
+    }
+
+    // Menghitung rata-rata nilai ADC
+    int averageADCValue = totalADCValue / numReadings;
+
+    // Menghitung nilai kekeruhan dalam persen
+    kekeruhan = ((CleanWaterADCValue - averageADCValue) * RangeKekeruhan) / RangeADC;
+
+    // Pastikan nilai kekeruhan tidak melebihi 100% atau kurang dari 0%
+    if(kekeruhan > 100) kekeruhan = 100;
+    else if(kekeruhan < 0) kekeruhan = 0;
+
+    Serial.print("kekeruhan : ");
+    Serial.print(kekeruhan);
+    Serial.println(" %");
+    Serial.print("ADC : ");
+    Serial.print(averageADCValue);
+    Serial.println(" %");
   }
-  VRata2 = V/800;
-  VHasil = roundf(VRata2*10.0f)/10.0f;
-  VFinal = VHasil-7;
-  kekeruhan = -1120.4*sq(VFinal)+5742.3*VFinal-4353.8; //Air Jernih 13488 //kalo sqrt itu = akar, kalo sq itu = perpangkatan 2
-  akhir = kekeruhan-13488;
-  if(VFinal <2.5){
-    kekeruhan = 3000;
-    Serial.print("tegangan :");
-    Serial.print(VFinal);
-    Serial.print(" V");
-    Serial.print("\t kekeruhan :");
-    Serial.println(kekeruhan);
-    tft.setCursor(4,189);
-    tft.setTextColor(TFT_RED); tft.setTextSize(3);
-    tft.print("KERUH ="); tft.print(kekeruhan); tft.println(" NTU");
-    }
-  else{
-    Serial.print(F("tegangan :"));
-    Serial.print(VFinal);
-    Serial.print(" V");
-    Serial.print("\t kekeruhan :");
-    Serial.println(akhir);
-    tft.setCursor(4,189);
-    tft.setTextColor(TFT_RED); tft.setTextSize(3);
-    tft.print("KERUH ="); tft.print(akhir); tft.println(" NTU");
-    }
-  Serial.print("V sebenarnya : "); Serial.println(VHasil);
+
+
 }

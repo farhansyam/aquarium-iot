@@ -125,6 +125,8 @@ void loop(){
 
     Serial.println(WiFi.status());
     PHsensor();
+    getTurbidity();
+    Serial.println(analogRead(34));
     static uint16_t color;
     DateTime now = rtc.now();
     uint8_t Temperature = GetSuhu();
@@ -136,7 +138,7 @@ void loop(){
     uint8_t angka_random = random(0, 100);
 
     if(SwitchOn){
-        ringMeter(angka_random, 0, 100, 180, 100, 63, "kekeruhan", GREEN2RED); // Draw analogue meter
+        ringMeter(kekeruhan, 0, 100, 180, 100, 63, "kekeruhan", GREEN2RED); // Draw analogue meter
         ringMeter(Po, 0, 16, 310, 25, 63, "PH", RED2GREEN);
         ringMeter(Temperature, -10, 50, 50, 25, 63, "C", BLUE2RED);
         wm.process();
@@ -158,7 +160,7 @@ void loop(){
         String documentPath = "/admin/aquarium-1/update-harian/";
         json.set(F("fields/ph/doubleValue"), Po);
         json.set(F("fields/temp/doubleValue"), Temperature);
-        json.set(F("fields/turbidity/doubleValue"), Po);
+        json.set(F("fields/turbidity/doubleValue"), kekeruhan);
         json.set(F("fields/created_at/stringValue"),tanggal);
 
         // mengirim data JSON ke Firestore
@@ -187,7 +189,7 @@ void loop(){
 
 
         
-        if (Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/ph"), Po) && Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/temp"), Temperature) && Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/turbidity"), Temperature) && Firebase.RTDB.setString(&fbdo, F("/admin/aquarium-1/updated_at"), tanggal)) {
+        if (Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/ph"), Po) && Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/temp"), Temperature) && Firebase.RTDB.setFloat(&fbdo, F("/admin/aquarium-1/turbidity"), kekeruhan) && Firebase.RTDB.setString(&fbdo, F("/admin/aquarium-1/updated_at"), tanggal)) {
             Serial.println(F("Data berhasil dikirim ke Realtime Database."));
         } else {
             Serial.printf("Data gagal dikirim ke Realtime Database. Error: %s\n", fbdo.errorReason().c_str());
