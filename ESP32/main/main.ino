@@ -141,12 +141,21 @@ void loop(){
         ringMeter(Po, 0, 16, 310, 25, 63, "PH", RED2GREEN);
         ringMeter(Temperature, -10, 50, 50, 25, 63, "C", BLUE2RED);
     }
-    if(WiFi.onEvent(WiFiGotIP,ARDUINO_EVENT_WIFI_STA_GOT_IP) == false){
-        Serial.println("eaaaaaaaaaa");
+    if (WiFi.status() == 3) {
+        unsigned long currentMillis = millis(); // get the current time
+        if (currentMillis - previousMillis >= 5000) { // check if enough time has passed
+            previousMillis = currentMillis; // store the current time as the previous time for the next iteration
+            tft.fillRect(wifilogo_x, wifilogo_y, wifilogo_width, wifilogo_height, TFT_BLACK);
+            tft.pushImage(wifilogo_x, wifilogo_y, wifilogo_width, wifilogo_height, connections);
+        }
     }
-    if(WiFi.status() == 3){
-        tft.fillRect(wifilogo_x,wifilogo_y,wifilogo_width,wifilogo_height,TFT_BLACK);
-        tft.pushImage(wifilogo_x,wifilogo_y,wifilogo_width,wifilogo_height,connections);
+    if (WiFi.status() == 6) {
+        unsigned long currentMillis = millis(); // get the current time
+        if (currentMillis - previousMillis >= 5000) { // check if enough time has passed
+            previousMillis = currentMillis; // store the current time as the previous time for the next iteration
+            tft.fillRect(wifilogo_x, wifilogo_y, wifilogo_width, wifilogo_height, TFT_BLACK);
+            tft.pushImage(wifilogo_x, wifilogo_y, wifilogo_width, wifilogo_height, lost_connections);
+        }
     }
     menu();
 

@@ -14,8 +14,9 @@ void menu(){
              // contoh: tampilkan menu monitor
             }
             if(x >= wifilogo_x && x <= wifilogo_x + wifilogo_width && y >= wifilogo_y && y <= wifilogo_y + wifilogo_height){
-                //wm.resetSettings();
-                if(WiFi.status() == 6){
+                wm.resetSettings();
+                if(WiFi.status() == 6 || WiFi.status() == 255  ){
+                    
                     tft.fillRect(wifilogo_x,wifilogo_y,wifilogo_width,wifilogo_height,TFT_BLACK);
                     tft.pushImage(wifilogo_x,wifilogo_y,wifilogo_width,wifilogo_height,loading);
 
