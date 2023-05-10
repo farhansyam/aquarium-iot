@@ -46,10 +46,10 @@ WiFiManager wm;
 //unsigned long lastDebounceTime = 0; // the last time the output pin was toggled
 //unsigned long debounceDelay = 1000; // the debounce time; increase if the output flickers
 
-
 void setup() {
     myWire.begin(25, 32);
     WiFi.mode(WIFI_STA);
+    wm.setConnectTimeout(5);
     pinMode(relay1,OUTPUT);
     if (! rtc.begin(&myWire)) {
         Serial.println(F("Couldn't find RTC"));
@@ -121,8 +121,7 @@ void setup() {
 
 }
 void loop(){
-
-
+    //wm.process();
     Serial.println(WiFi.status());
     PHsensor();
     getTurbidity();
@@ -141,7 +140,13 @@ void loop(){
         ringMeter(kekeruhan, 0, 100, 180, 100, 63, "kekeruhan", GREEN2RED); // Draw analogue meter
         ringMeter(Po, 0, 16, 310, 25, 63, "PH", RED2GREEN);
         ringMeter(Temperature, -10, 50, 50, 25, 63, "C", BLUE2RED);
-        wm.process();
+    }
+    if(WiFi.onEvent(WiFiGotIP,ARDUINO_EVENT_WIFI_STA_GOT_IP) == false){
+        Serial.println("eaaaaaaaaaa");
+    }
+    if(WiFi.status() == 3){
+        tft.fillRect(wifilogo_x,wifilogo_y,wifilogo_width,wifilogo_height,TFT_BLACK);
+        tft.pushImage(wifilogo_x,wifilogo_y,wifilogo_width,wifilogo_height,connections);
     }
     menu();
 
