@@ -290,7 +290,7 @@ void loop(){
     bool isServoRotated[numFeed] = {false}; // Array untuk melacak status putaran servo
 
     for (int i = 0; i < numFeed; i++) {
-        if (waktu == localVarFeedTime[i] && !isServoRotated[i]) {
+        if (waktu == localVarFeedTime[i]&& 1 == now.second()) {
             nilaiKekeruhanSaatMakan[i] = kekeruhan;
             nilaiPhSaatMakan[i] = Po;
             fuzzy->setInput(1, perbedaanKekeruhanSaatIni[i]);
@@ -302,16 +302,14 @@ void loop(){
             
             delay(3000);
             servo1.write(170); // Kembali ke posisi semula
-            
+            delay(3000);
             isServoRotated[i] = true; // Mengubah status putaran servo menjadi true
-            printf("isServoRotated[%d] = true\n", i);
             
             // Jika Anda ingin servo hanya berputar sekali pada setiap jam makan,
             // Anda dapat keluar dari loop setelah servo berputar dengan menggunakan pernyataan "break"
             break;
         }
-            printf("blom waktunya makan\n");
-            printf("isServoRotated[%d] = %s\n", i, isServoRotated[i] ? "true" : "false");
+            Serial.printf("blom waktunya makan\n");
     }
 
 
